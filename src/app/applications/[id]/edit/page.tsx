@@ -62,12 +62,20 @@ export default function EditApplicationPage() {
     // If next action was added/updated
     if (formData.include_next_action && formData.next_action_title && formData.next_action_due_date) {
       if (application.active_action) {
-        await DataService.rescheduleAction(
-          application.active_action.id,
-          formData.next_action_due_date,
-          `Updated via Edit: ${formData.next_action_title}`,
-          user?.id
-        );
+        if (formData.next_action_title !== application.active_action.title || formData.next_action_type !== application.active_action.action_type) {
+          await DataService.updateAction(application.active_action.id, {
+            title: formData.next_action_title,
+            action_type: formData.next_action_type || "custom",
+          }, user?.id);
+        }
+        if (formData.next_action_due_date !== application.active_action.due_date) {
+          await DataService.rescheduleAction(
+            application.active_action.id,
+            formData.next_action_due_date,
+            undefined,
+            user?.id
+          );
+        }
       } else {
         await DataService.addAction(
           application.id,

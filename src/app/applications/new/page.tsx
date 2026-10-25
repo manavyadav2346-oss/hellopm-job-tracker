@@ -36,7 +36,7 @@ export default function NewApplicationPage() {
           Add Application
         </h1>
         <p className="text-sm text-stone-500 mt-1">
-          Record company details, stage, and communication state. Optionally schedule an immediate next action to prevent applications from going stale.
+          Start with the company and role. Add an update or next action only when you have one.
         </p>
       </div>
 

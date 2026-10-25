@@ -37,10 +37,10 @@ export function Navbar() {
               Sample Preview
             </span>
             <span className="font-medium">
-              Viewing fictional applicant data.
+              Sample workspace — nothing entered here is saved to your account.
             </span>
             <span className="text-amber-700 hidden sm:inline">
-              Sample changes are temporary and do not affect your saved applications.
+              Sign in or return to your applications to save your own records.
             </span>
           </div>
           <div className="flex items-center gap-3">
@@ -56,13 +56,11 @@ export function Navbar() {
               <RotateCcw className="w-3.5 h-3.5" />
               Reset sample data
             </button>
-            <Link
-              href="/auth"
-              className="inline-flex items-center gap-1 text-xs bg-amber-200/80 hover:bg-amber-200 text-amber-900 px-2 py-1 rounded font-medium transition-colors"
-            >
-              <Database className="w-3.5 h-3.5" />
-              {isConfigured ? "Sign in to real account" : "Supabase setup"}
-            </Link>
+            {user ? (
+              <button onClick={() => { setPreviewMode(false); window.location.assign("/applications"); }} className="text-xs bg-amber-200 px-2 py-1 rounded font-medium">Back to my applications</button>
+            ) : (
+              <Link href="/auth" className="text-xs bg-amber-200 px-2 py-1 rounded font-medium">{isConfigured ? "Sign in to save your applications" : "Supabase setup"}</Link>
+            )}
           </div>
         </div>
       )}

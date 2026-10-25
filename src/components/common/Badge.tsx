@@ -60,14 +60,14 @@ export function DueBadge({ category, text }: { category: DueCategory; text: stri
 export function ActionTypeBadge({ type }: { type: string }) {
   const labels: Record<string, string> = {
     recruiter_follow_up: "Recruiter Follow-up",
-    check_portal: "Check Portal",
+    check_portal: "Task: Check portal",
     prepare_materials: "Prepare Materials",
     send_update: "Send Update",
     custom: "Action",
   };
 
   return (
-    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-stone-100 text-stone-600 border border-stone-200">
+    <span title="Task category, not a link" className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-stone-100 text-stone-600 border border-stone-200">
       {labels[type] || type}
     </span>
   );

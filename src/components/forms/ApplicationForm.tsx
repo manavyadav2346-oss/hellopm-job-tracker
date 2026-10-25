@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { validateApplicationDate } from "@/lib/product-validation";
 import { useRouter } from "next/navigation";
 import {
   Application,
@@ -138,6 +139,9 @@ export function ApplicationForm({
       return;
     }
 
+    const dateError = validateApplicationDate(applicationDate, stage);
+    if (dateError) { setError(dateError); return; }
+
     // Require due date only if next action is entered
     if (includeNextAction) {
       if (!actionTitle.trim()) {
@@ -256,10 +260,11 @@ export function ApplicationForm({
               htmlFor="form-date"
               className="block text-xs font-semibold text-stone-700 mb-1"
             >
-              Application Date <span className="text-rose-500">*</span>
+              {stage === "Draft" ? "Planned application date" : "Application date"} <span className="text-rose-500">*</span>
             </label>
             <input
               id="form-date"
+              max={stage === "Draft" ? undefined : today}
               type="date"
               required
               value={applicationDate}
@@ -332,8 +337,9 @@ export function ApplicationForm({
               <option value="Screening">Screening</option>
               <option value="Interviewing">Interviewing</option>
               <option value="Offer">Offer</option>
-              <option value="Closed">Closed</option>
+              {isEditing && initialData?.stage === "Closed" && <option value="Closed">Closed</option>}
             </select>
+            <p className="text-xs text-stone-500 mt-2">Update this when a recruiter or portal confirms progress. No reply does not mean rejection. To record a rejection, open the saved application and choose Close → Rejected.</p>
           </div>
 
           {/* Communication State */}
@@ -475,7 +481,7 @@ export function ApplicationForm({
             />
             <span className="text-xs font-semibold text-stone-800 flex items-center gap-1.5">
               <Clock className="w-4 h-4 text-indigo-600" />
-              Set a next action for this application
+              Set a next action (optional)
             </span>
           </label>
         </div>
@@ -530,7 +536,7 @@ export function ApplicationForm({
                   <option value="check_portal">Check portal</option>
                   <option value="prepare_materials">Prepare materials</option>
                   <option value="send_update">Send update</option>
-                  <option value="custom">Custom action</option>
+                  <option value="custom">Other task (describe it above)</option>
                 </select>
               </div>
             </div>
@@ -545,7 +551,7 @@ export function ApplicationForm({
                   Action Due Date <span className="text-rose-500">*</span>
                 </label>
                 <span className="text-[11px] text-stone-400">
-                  Users choose and confirm their own dates
+                  Choose when you want to act
                 </span>
               </div>
               <input
@@ -558,7 +564,7 @@ export function ApplicationForm({
 
               {/* Quick helper pills */}
               <div className="flex flex-wrap items-center gap-2 mt-2">
-                <span className="text-xs text-stone-400">Pills:</span>
+                <span className="text-xs text-stone-400">Quick dates:</span>
                 {[
                   { label: "Tomorrow", days: 1 },
                   { label: "In 3 days", days: 3 },

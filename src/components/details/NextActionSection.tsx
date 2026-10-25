@@ -126,9 +126,10 @@ export function NextActionSection({
                 {activeAction.title}
               </h4>
               {activeAction.notes && (
-                <p className="text-xs text-stone-600 italic">
-                  &ldquo;{activeAction.notes}&rdquo;
-                </p>
+                <details className="text-xs text-stone-600">
+                  <summary className="cursor-pointer font-medium">Action notes & change history</summary>
+                  <p className="mt-2 whitespace-pre-line break-words">{activeAction.notes}</p>
+                </details>
               )}
             </div>
 
@@ -265,7 +266,7 @@ export function NextActionSection({
                 <option value="recruiter_follow_up">Recruiter follow-up</option>
                 <option value="prepare_materials">Prepare materials</option>
                 <option value="send_update">Send update</option>
-                <option value="custom">Custom action</option>
+                <option value="custom">Other task (describe it above)</option>
               </select>
             </div>
 

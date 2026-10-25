@@ -156,16 +156,14 @@ export function Sidebar() {
               <span>Sample Preview Mode</span>
             </div>
             <p className="text-[11px] text-amber-800 mt-1 leading-normal">
-              Fictional data. Isolated from real accounts. Changes not saved.
+              Sample workspace. Any records you add here are temporary and are not saved to your account.
             </p>
             <div className="mt-2 pt-2 border-t border-amber-200 flex items-center justify-between">
-              <Link
-                href="/auth"
-                className="text-[11px] font-semibold text-indigo-700 hover:underline flex items-center gap-1"
-              >
-                <Database className="w-3 h-3" />
-                {isConfigured ? "Log in" : "Configure DB"}
-              </Link>
+              {user ? (
+                <button onClick={() => { setPreviewMode(false); window.location.assign("/applications"); }} className="text-[11px] font-semibold text-indigo-700 hover:underline">Back to my applications</button>
+              ) : (
+                <Link href="/auth" className="text-[11px] font-semibold text-indigo-700 hover:underline">{isConfigured ? "Sign in to save applications" : "Configure DB"}</Link>
+              )}
             </div>
           </div>
         ) : (

@@ -52,9 +52,10 @@ export function ActionCard({
           </div>
 
           {action.notes && (
-            <p className="text-xs text-stone-500 pt-1 line-clamp-2 italic">
-              &ldquo;{action.notes}&rdquo;
-            </p>
+            <details className="text-xs text-stone-500 pt-1">
+              <summary className="cursor-pointer">Action notes & change history</summary>
+              <p className="mt-1 whitespace-pre-line break-words">{action.notes}</p>
+            </details>
           )}
         </div>
 

@@ -8,6 +8,7 @@ import {
 } from "@/types/job";
 import { getSupabaseClient, isSupabaseConfigured } from "./supabase/client";
 import { previewStore } from "./preview-store";
+import { validateApplicationDate } from "./product-validation";
 import { getDueCategory, getTodayLocalDateString } from "./dates";
 
 export class DataService {
@@ -131,6 +132,8 @@ export class DataService {
     formData: ApplicationFormData,
     userId: string
   ): Promise<Application> {
+    const dateError = validateApplicationDate(formData.application_date, formData.stage);
+    if (dateError) throw new Error(dateError);
     if (this.isPreviewMode()) {
       return previewStore.createApplication(formData);
     }
@@ -167,13 +170,13 @@ export class DataService {
     // 2. Insert initial interaction
     const summary =
       formData.initial_interaction_summary ||
-      `Application submitted for ${newApp.role} at ${newApp.company}.`;
+      (formData.stage === "Draft" ? `Planned application for ${newApp.role} at ${newApp.company}.` : `Application submitted for ${newApp.role} at ${newApp.company}.`);
 
     const { error: intError } = await supabase.from("interactions").insert({
       application_id: newApp.id,
       user_id: userId,
-      interaction_date: formData.application_date,
-      type: formData.initial_interaction_type || "Application Submitted",
+      interaction_date: formData.stage === "Draft" ? getTodayLocalDateString() : formData.application_date,
+      type: formData.stage === "Draft" ? "Note / Update" : (formData.initial_interaction_type || "Application Submitted"),
       summary: summary,
       details: formData.notes || null,
     });
@@ -220,6 +223,12 @@ export class DataService {
     updates: Partial<Application>,
     userId: string
   ): Promise<Application> {
+    if (updates.application_date || updates.stage) {
+      const existing = await this.getApplicationById(id);
+      if (!existing) throw new Error("Application not found.");
+      const dateError = validateApplicationDate(updates.application_date || existing.application_date, updates.stage || existing.stage);
+      if (dateError) throw new Error(dateError);
+    }
     if (this.isPreviewMode()) {
       return previewStore.updateApplication(id, updates);
     }
@@ -434,14 +443,16 @@ export class DataService {
     const now = new Date().toISOString();
 
     // Get current action to track reschedule count
-    const { data: current } = await supabase
+    const { data: current, error: readError } = await supabase
       .from("next_actions")
-      .select("rescheduled_count, notes, due_date")
+      .select("*")
       .eq("id", actionId)
       .eq("user_id", userId)
       .single();
 
-    const count = (current?.rescheduled_count || 0) + 1;
+    if (readError || !current) throw new Error("Could not load action to reschedule.");
+    if (current.due_date === newDueDate) return current;
+    const count = (current.rescheduled_count || 0) + 1;
     const prevDate = current?.due_date || "";
     const noteEntry = notes
       ? `[Rescheduled from ${prevDate} to ${newDueDate}]: ${notes}`
@@ -453,7 +464,7 @@ export class DataService {
         due_date: newDueDate,
         rescheduled_count: count,
         last_rescheduled_at: now,
-        notes: noteEntry || current?.notes,
+        notes: noteEntry ? [current.notes, noteEntry].filter(Boolean).join("\n") : current.notes,
       })
       .eq("id", actionId)
       .eq("user_id", userId)
@@ -465,6 +476,21 @@ export class DataService {
     }
 
     return action;
+  }
+
+  public static async updateAction(
+    actionId: string,
+    updates: { title: string; action_type: ActionType },
+    userId?: string
+  ): Promise<NextAction> {
+    if (this.isPreviewMode()) return previewStore.updateAction(actionId, updates);
+    const supabase = getSupabaseClient();
+    if (!supabase || !userId) throw new Error("Authentication required.");
+    const { data, error } = await supabase.from("next_actions")
+      .update({ title: updates.title.trim(), action_type: updates.action_type })
+      .eq("id", actionId).eq("user_id", userId).select().single();
+    if (error || !data) throw new Error(`Failed to update action: ${error?.message || "Not found"}`);
+    return data;
   }
 
   public static async addAction(

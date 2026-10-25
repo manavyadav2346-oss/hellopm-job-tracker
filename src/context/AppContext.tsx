@@ -6,6 +6,7 @@ import { User } from "@supabase/supabase-js";
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { DataService } from "@/lib/data-service";
 import { SAMPLE_USER_ID } from "@/lib/sample-data";
+import { shouldExitPreview } from "@/lib/product-validation";
 
 interface AppContextType {
   user: User | null;
@@ -39,7 +40,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         // Check current session
         supabase.auth.getSession().then(({ data: { session } }) => {
           setUser(session?.user || null);
-          if (session?.user && !initialPreview) {
+          if (session?.user) {
+            DataService.setPreviewMode(false);
             setIsPreviewModeState(false);
           }
           setIsLoading(false);
@@ -48,15 +50,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         // Listen for auth changes
         const {
           data: { subscription },
-        } = supabase.auth.onAuthStateChange((_event, session) => {
+        } = supabase.auth.onAuthStateChange((event, session) => {
           setUser(session?.user || null);
-          if (session?.user) {
-            // Once logged in with a real account, exit preview mode unless user specifically toggled it
-            const stored = localStorage.getItem("job_tracker_preview_mode");
-            if (stored !== "true") {
-              setIsPreviewModeState(false);
-              DataService.setPreviewMode(false);
-            }
+          if (shouldExitPreview(event, Boolean(session?.user))) {
+            DataService.setPreviewMode(false);
+            setIsPreviewModeState(false);
+          } else if (event === "SIGNED_OUT") {
+            DataService.setPreviewMode(true);
+            setIsPreviewModeState(true);
           }
           setIsLoading(false);
         });
@@ -107,7 +108,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         resetPreviewData: handleResetPreviewData,
       }}
     >
-      {children}
+        {isLoading ? <div className="p-8 text-sm text-stone-600" role="status">Opening Job Tracker…</div> : <React.Fragment key={`${isPreviewMode ? "sample" : "account"}:${user?.id || "guest"}`}>{children}</React.Fragment>}
     </AppContext.Provider>
   );
 }

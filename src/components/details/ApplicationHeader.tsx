@@ -100,7 +100,7 @@ export function ApplicationHeader({
 
         <span className="text-xs text-stone-500 ml-auto flex items-center gap-1">
           <Calendar className="w-3.5 h-3.5 text-stone-400" />
-          Applied {formatLocalDate(application.application_date, { includeRelative: false })}
+          {application.stage === "Draft" ? "Planned" : "Applied"} {formatLocalDate(application.application_date, { includeRelative: false })}
         </span>
       </div>
 

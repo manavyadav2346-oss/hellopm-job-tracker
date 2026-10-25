@@ -93,14 +93,14 @@ class PreviewStore {
     // Initial interaction if provided or default initial application entry
     const interactionSummary =
       formData.initial_interaction_summary ||
-      `Application submitted for ${formData.role} at ${formData.company}.`;
+      (formData.stage === "Draft" ? `Planned application for ${formData.role} at ${formData.company}.` : `Application submitted for ${formData.role} at ${formData.company}.`);
 
     const initialInteraction: Interaction = {
       id: `sample-int-${Date.now()}`,
       application_id: newId,
       user_id: SAMPLE_USER_ID,
-      interaction_date: formData.application_date,
-      type: formData.initial_interaction_type || "Application Submitted",
+      interaction_date: formData.stage === "Draft" ? getTodayLocalDateString() : formData.application_date,
+      type: formData.stage === "Draft" ? "Note / Update" : (formData.initial_interaction_type || "Application Submitted"),
       summary: interactionSummary,
       details: formData.notes || null,
       created_at: now,
@@ -285,6 +285,7 @@ class PreviewStore {
       throw new Error(`Action with id ${actionId} not found.`);
     }
 
+    if (action.due_date === newDueDate) return action;
     const prevDate = action.due_date;
     const now = new Date().toISOString();
     action.due_date = newDueDate;
@@ -297,6 +298,15 @@ class PreviewStore {
         : `[Rescheduled from ${prevDate} to ${newDueDate}]: ${notes}`;
     }
 
+    return action;
+  }
+
+  public updateAction(actionId: string, updates: { title: string; action_type: NextAction["action_type"] }): NextAction {
+    const action = this.actions.find((a) => a.id === actionId);
+    if (!action) throw new Error("Action not found.");
+    action.title = updates.title.trim();
+    action.action_type = updates.action_type;
+    action.updated_at = new Date().toISOString();
     return action;
   }
 

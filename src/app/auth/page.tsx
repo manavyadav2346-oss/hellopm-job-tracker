@@ -63,7 +63,7 @@ export default function AuthPage() {
 
         if (data.session) {
           setPreviewMode(false);
-          setSuccessMessage("Account created successfully! Real accounts start completely empty.");
+          setSuccessMessage("Account created! Add your first application to get started.");
           setTimeout(() => router.push("/applications"), 1500);
         } else {
           setSuccessMessage(
@@ -124,9 +124,10 @@ export default function AuthPage() {
           </div>
 
           <div className="text-xs text-stone-600 bg-stone-50 p-3 rounded-lg border border-stone-200 space-y-1">
-            <p>Your applications and updates are saved to your account.</p>
+            <p>{isPreviewMode ? "You are exploring temporary sample data. Switch back to your applications to save changes to your account." : "Your applications and updates are saved to your account."}</p>
           </div>
 
+          <Link href="/applications" onClick={() => setPreviewMode(false)} className="inline-flex items-center px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium">Go to my applications</Link>
           <div className="pt-2 flex flex-wrap items-center justify-between gap-3 border-t border-stone-100">
             <button
               onClick={() => {
@@ -281,7 +282,7 @@ export default function AuthPage() {
                 </div>
                 {tab === "signup" && (
                   <span className="text-[11px] text-stone-500 mt-1 block">
-                    Must be at least 6 characters. Real accounts start completely empty.
+                    Use at least 6 characters. Your account contains only applications you add; demo records are not copied.
                   </span>
                 )}
               </div>
@@ -294,8 +295,8 @@ export default function AuthPage() {
                 {isLoading
                   ? "Processing..."
                   : tab === "signin"
-                  ? "Sign In to Cloud Account"
-                  : "Create Cloud Account"}
+                  ? "Sign in"
+                  : "Create account"}
               </button>
               {tab === "signin" && (
                 <Link href="/auth/forgot-password" className="block text-center text-sm font-medium text-indigo-600 hover:underline">
