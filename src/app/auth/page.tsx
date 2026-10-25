@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/context/AppContext";
@@ -296,6 +297,11 @@ export default function AuthPage() {
                   ? "Sign In to Cloud Account"
                   : "Create Cloud Account"}
               </button>
+              {tab === "signin" && (
+                <Link href="/auth/forgot-password" className="block text-center text-sm font-medium text-indigo-600 hover:underline">
+                  Forgot password?
+                </Link>
+              )}
             </form>
           </div>
 
