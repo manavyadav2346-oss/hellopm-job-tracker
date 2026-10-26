@@ -32,12 +32,14 @@ import {
 
 interface ApplicationFormProps {
   initialData?: Partial<Application>;
+  capturedData?: Partial<ApplicationFormData>;
   onSubmit: (formData: ApplicationFormData) => Promise<void>;
   isEditing?: boolean;
 }
 
 export function ApplicationForm({
   initialData,
+  capturedData,
   onSubmit,
   isEditing = false,
 }: ApplicationFormProps) {
@@ -45,41 +47,41 @@ export function ApplicationForm({
   const today = getTodayLocalDateString();
 
   // Core required fields
-  const [company, setCompany] = useState(initialData?.company || "");
-  const [role, setRole] = useState(initialData?.role || "");
+  const [company, setCompany] = useState(capturedData?.company || initialData?.company || "");
+  const [role, setRole] = useState(capturedData?.role || initialData?.role || "");
   const [applicationDate, setApplicationDate] = useState(
-    initialData?.application_date || today
+    capturedData?.application_date || initialData?.application_date || today
   );
   const [stage, setStage] = useState<ApplicationStage>(
-    initialData?.stage || "Applied"
+    capturedData?.stage || initialData?.stage || "Applied"
   );
   const [communicationState, setCommunicationState] = useState<CommunicationState>(
     initialData?.communication_state || "No update received"
   );
   const [source, setSource] = useState<ApplicationSource>(
-    initialData?.source || "LinkedIn"
+    capturedData?.source || initialData?.source || "LinkedIn"
   );
   const [sourceDetails, setSourceDetails] = useState(
-    initialData?.source_details || ""
+    capturedData?.source_details || initialData?.source_details || ""
   );
 
   // Optional Contact & URL fields (behind progressive disclosure)
   const [showContactSection, setShowContactSection] = useState(
     Boolean(
-      initialData?.contact_name ||
-      initialData?.contact_channel ||
-      initialData?.job_url ||
+      capturedData?.contact_name || initialData?.contact_name ||
+      capturedData?.contact_channel || initialData?.contact_channel ||
+      capturedData?.job_url || initialData?.job_url ||
       initialData?.notes
     )
   );
-  const [jobUrl, setJobUrl] = useState(initialData?.job_url || "");
+  const [jobUrl, setJobUrl] = useState(capturedData?.job_url || initialData?.job_url || "");
   const [contactName, setContactName] = useState(
-    initialData?.contact_name || ""
+    capturedData?.contact_name || initialData?.contact_name || ""
   );
   const [contactChannel, setContactChannel] = useState(
-    initialData?.contact_channel || ""
+    capturedData?.contact_channel || initialData?.contact_channel || ""
   );
-  const [notes, setNotes] = useState(initialData?.notes || "");
+  const [notes, setNotes] = useState(capturedData?.notes || initialData?.notes || "");
 
   // Optional Initial Interaction (only for new creation)
   const [showInteractionSection, setShowInteractionSection] = useState(false);
@@ -89,7 +91,7 @@ export function ApplicationForm({
   const [interactionType, setInteractionType] = useState<InteractionType>(
     "Application Submitted"
   );
-  const [interactionSummary, setInteractionSummary] = useState("");
+  const [interactionSummary, setInteractionSummary] = useState(capturedData?.initial_interaction_summary || "");
 
   // Optional Next Action
   const [showNextActionSection, setShowNextActionSection] = useState(
@@ -99,13 +101,13 @@ export function ApplicationForm({
     Boolean(initialData?.active_action)
   );
   const [actionTitle, setActionTitle] = useState(
-    initialData?.active_action?.title || ""
+    capturedData?.next_action_title || initialData?.active_action?.title || ""
   );
   const [actionType, setActionType] = useState<ActionType>(
-    initialData?.active_action?.action_type || "check_portal"
+    capturedData?.next_action_type || initialData?.active_action?.action_type || "check_portal"
   );
   const [actionDueDate, setActionDueDate] = useState(
-    initialData?.active_action?.due_date || addDaysToLocalDateString(today, 3)
+    capturedData?.next_action_due_date || initialData?.active_action?.due_date || addDaysToLocalDateString(today, 3)
   );
 
   // Submission state

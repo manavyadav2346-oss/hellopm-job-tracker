@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { PasteCapture } from "@/components/forms/PasteCapture";
 import { Modal } from "@/components/common/Modal";
 import { InteractionType, CommunicationState } from "@/types/job";
 import { getTodayLocalDateString } from "@/lib/dates";
@@ -98,6 +99,14 @@ export function AddInteractionModal({
           </div>
         )}
 
+        <PasteCapture compact onCapture={captured => {
+          if ((summary.trim() || details.trim()) && !window.confirm("Replace the current summary and notes with this message?")) return;
+          setSummary(captured.summary);
+          setDetails(`Original pasted text:\n${captured.originalText}`);
+          setType(captured.interactionType);
+          setError(null);
+        }} />
+        <p className="text-xs text-stone-500">Review the summary, date and reply status before saving. Pasted text does not change the application stage.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label
