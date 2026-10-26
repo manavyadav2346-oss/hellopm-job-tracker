@@ -52,7 +52,7 @@ export function ApplicationCard({ application, onDelete }: ApplicationCardProps)
 
         {/* Badges: Communication state & Source */}
         <div className="flex flex-wrap items-center gap-2">
-          <CommStateBadge state={application.communication_state} />
+          {application.stage !== "Closed" && <CommStateBadge state={application.communication_state} />}
           <span className="inline-flex items-center px-2 py-0.5 rounded text-xs text-stone-500 bg-stone-50 border border-stone-200">
             {application.source === "Other" && application.source_details
               ? application.source_details

@@ -94,7 +94,7 @@ export function ApplicationHeader({
       {/* Badges & Status row */}
       <div className="flex flex-wrap items-center gap-2.5 pt-2 border-t border-stone-100">
         <StageBadge stage={application.stage} />
-        <CommStateBadge state={application.communication_state} />
+        {application.stage !== "Closed" && <CommStateBadge state={application.communication_state} />}
 
         {application.closed_reason && (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-50 text-rose-800 border border-rose-200">
