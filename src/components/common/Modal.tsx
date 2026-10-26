@@ -63,9 +63,9 @@ export function Modal({
       />
       <div
         ref={modalRef}
-        className={`relative w-full ${maxWidthClass} bg-white rounded-xl shadow-xl border border-stone-200 p-6 z-10 transition-all`}
+        className={`relative w-full ${maxWidthClass} bg-white rounded-xl shadow-xl border border-stone-200 p-6 z-10 transition-all flex flex-col max-h-[calc(100dvh-2rem)] overflow-hidden`}
       >
-        <div className="flex items-start justify-between pb-3 border-b border-stone-100">
+        <div className="flex shrink-0 items-start justify-between gap-3 pb-3 border-b border-stone-100">
           <div>
             <h3 id="modal-title" className="text-lg font-semibold text-stone-900">
               {title}
@@ -82,7 +82,7 @@ export function Modal({
             <X className="w-5 h-5" />
           </button>
         </div>
-        <div className="mt-4">{children}</div>
+        <div className="mt-4 min-h-0 overflow-y-auto overscroll-contain pr-1">{children}</div>
       </div>
     </div>
   );
