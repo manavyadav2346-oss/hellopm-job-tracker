@@ -9,6 +9,7 @@ interface CloseApplicationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCloseApplication: (reason: ClosedReason, notes?: string) => Promise<void>;
+  initialReason?: ClosedReason;
   company: string;
   role: string;
 }
@@ -28,11 +29,16 @@ export function CloseApplicationModal({
   onCloseApplication,
   company,
   role,
+  initialReason = "Other",
 }: CloseApplicationModalProps) {
   const [reason, setReason] = useState<ClosedReason>("Rejected");
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (isOpen) { setReason(initialReason); setNotes(""); setError(null); }
+  }, [isOpen, initialReason]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,8 +58,8 @@ export function CloseApplicationModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Close Application"
-      description={`Archive ${role} at ${company}.`}
+      title={reason === "Rejected" ? "Mark application rejected" : "Record application outcome"}
+      description={`${role} at ${company}. Keep the record and history; stop pending tasks.`}
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
@@ -67,7 +73,7 @@ export function CloseApplicationModal({
         <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-900 space-y-1">
           <div className="flex items-center gap-1.5 font-semibold text-amber-950">
             <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
-            <span>Important Product Rule</span>
+            <span>What happens next</span>
           </div>
           <p>
             Closing an application removes outstanding tasks from <strong>Needs attention</strong> while preserving all interaction history and records.
@@ -128,7 +134,7 @@ export function CloseApplicationModal({
             disabled={isSubmitting}
             className="px-4 py-2 text-xs font-medium bg-stone-800 hover:bg-stone-900 disabled:opacity-50 text-white rounded-lg shadow-sm transition-colors"
           >
-            {isSubmitting ? "Closing..." : "Confirm Close"}
+            {isSubmitting ? "Saving..." : reason === "Rejected" ? "Confirm rejection" : "Save outcome"}
           </button>
         </div>
       </form>

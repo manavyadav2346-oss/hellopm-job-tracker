@@ -29,6 +29,7 @@ export default function ApplicationDetailPage() {
   // Modals
   const [isLogUpdateOpen, setIsLogUpdateOpen] = useState(false);
   const [isCloseAppOpen, setIsCloseAppOpen] = useState(false);
+  const [closeReason, setCloseReason] = useState<ClosedReason>("Other");
   const [actionToReschedule, setActionToReschedule] = useState<NextAction | null>(null);
   const [actionToComplete, setActionToComplete] = useState<NextAction | null>(null);
 
@@ -208,7 +209,7 @@ export default function ApplicationDetailPage() {
       <ApplicationHeader
         application={application}
         onOpenLogUpdate={() => setIsLogUpdateOpen(true)}
-        onOpenCloseApp={() => setIsCloseAppOpen(true)}
+        onOpenCloseApp={(reason) => { setCloseReason(reason || "Other"); setIsCloseAppOpen(true); }}
         onDeleteApp={handleDeleteApplication}
       />
 
@@ -241,6 +242,7 @@ export default function ApplicationDetailPage() {
         isOpen={isCloseAppOpen}
         onClose={() => setIsCloseAppOpen(false)}
         onCloseApplication={handleCloseApplication}
+        initialReason={closeReason}
         company={application.company}
         role={application.role}
       />

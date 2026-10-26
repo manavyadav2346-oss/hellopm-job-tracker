@@ -54,7 +54,7 @@ export function InteractionTimeline({ interactions }: InteractionTimelineProps) 
 
       {sorted.length === 0 ? (
         <div className="py-8 text-center text-stone-400 text-xs">
-          No interactions recorded yet. Click &ldquo;Log update&rdquo; to add your first note, call, or email.
+          No interactions recorded yet. Click &ldquo;Add update&rdquo; to add your first note, call, or email.
         </div>
       ) : (
         <div className="relative pl-6 space-y-4 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-stone-200">

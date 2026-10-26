@@ -130,7 +130,7 @@ export class DataService {
 
   public static async createApplication(
     formData: ApplicationFormData,
-    userId: string
+    userId?: string
   ): Promise<Application> {
     const dateError = validateApplicationDate(formData.application_date, formData.stage);
     if (dateError) throw new Error(dateError);
@@ -141,6 +141,15 @@ export class DataService {
     const supabase = getSupabaseClient();
     if (!supabase) {
       throw new Error("Supabase is not configured.");
+    }
+
+    // Never send a preview placeholder or stale account identity to Postgres.
+    if (!userId || !/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(userId)) {
+      throw new Error("Please sign in before saving to your account, or reopen sample preview to try without an account.");
+    }
+    const { data: { user: authenticatedUser }, error: authError } = await supabase.auth.getUser();
+    if (authError || !authenticatedUser || authenticatedUser.id !== userId) {
+      throw new Error("Your session has changed. Please sign in again before saving. Your form has not been cleared.");
     }
 
     // 1. Insert application

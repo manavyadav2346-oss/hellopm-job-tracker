@@ -11,12 +11,12 @@ import Link from "next/link";
 
 export default function NewApplicationPage() {
   const router = useRouter();
-  const { user } = useApp();
+  const { user, isPreviewMode } = useApp();
 
   const handleCreate = async (formData: ApplicationFormData) => {
     const created = await DataService.createApplication(
       formData,
-      user?.id || "preview-user"
+      user?.id
     );
     // Return to the saved record or attention view
     router.push(`/applications/${created.id}`);
@@ -40,6 +40,9 @@ export default function NewApplicationPage() {
         </p>
       </div>
 
+      <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-3 text-xs text-indigo-900">
+        {isPreviewMode ? <><strong>Try it without an account.</strong> Sample changes reset on refresh and do not transfer to an account. <Link href="/auth" className="underline font-semibold">Sign in to keep your real applications.</Link></> : <>Your application will be saved to your account. Only company and role need typing; check the date and source, then save.</>}
+      </div>
       <ApplicationForm onSubmit={handleCreate} isEditing={false} />
     </div>
   );

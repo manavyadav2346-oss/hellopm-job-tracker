@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { User } from "@supabase/supabase-js";
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { DataService } from "@/lib/data-service";
-import { SAMPLE_USER_ID } from "@/lib/sample-data";
 import { shouldExitPreview } from "@/lib/product-validation";
 
 interface AppContextType {
@@ -37,13 +36,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (configured) {
       const supabase = getSupabaseClient();
       if (supabase) {
-        // Check current session
+        // Ignore a stale session lookup after a newer auth event.
+        let authEventReceived = false;
+        let disposed = false;
         supabase.auth.getSession().then(({ data: { session } }) => {
+          if (disposed || authEventReceived) return;
           setUser(session?.user || null);
           if (session?.user) {
             DataService.setPreviewMode(false);
             setIsPreviewModeState(false);
+          } else {
+            DataService.setPreviewMode(true);
+            setIsPreviewModeState(true);
           }
+          setIsLoading(false);
+        }).catch(() => {
+          if (disposed || authEventReceived) return;
+          setUser(null);
+          DataService.setPreviewMode(true);
+          setIsPreviewModeState(true);
           setIsLoading(false);
         });
 
@@ -51,18 +62,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const {
           data: { subscription },
         } = supabase.auth.onAuthStateChange((event, session) => {
+          authEventReceived = true;
+          if (disposed) return;
           setUser(session?.user || null);
           if (shouldExitPreview(event, Boolean(session?.user))) {
             DataService.setPreviewMode(false);
             setIsPreviewModeState(false);
-          } else if (event === "SIGNED_OUT") {
+          } else if (!session?.user) {
             DataService.setPreviewMode(true);
             setIsPreviewModeState(true);
           }
           setIsLoading(false);
         });
 
-        return () => subscription.unsubscribe();
+        return () => { disposed = true; subscription.unsubscribe(); };
       }
     }
 

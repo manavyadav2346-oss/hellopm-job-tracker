@@ -59,6 +59,7 @@ export function AddInteractionModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (date > today) { setError("Use today or an earlier date. For a future task, set a Next action instead."); return; }
     if (!summary.trim()) {
       setError("Please provide a brief summary of the interaction.");
       return;
@@ -86,8 +87,8 @@ export function AddInteractionModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Log Interaction or Update"
-      description="Record an email, call, interview, or personal update to keep interaction history dated and organized."
+      title="Add an update"
+      description="Record something that already happened, such as a recruiter email or a completed interview. This saves a dated note; it does not send messages or create reminders."
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
@@ -109,6 +110,7 @@ export function AddInteractionModal({
               id="int-date"
               type="date"
               required
+              max={today}
               value={date}
               onChange={(e) => setDate(e.target.value)}
               className="w-full px-3 py-2 text-sm rounded-lg border border-stone-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
@@ -120,7 +122,7 @@ export function AddInteractionModal({
               htmlFor="int-type"
               className="block text-xs font-medium text-stone-700 mb-1"
             >
-              Interaction Type
+              What happened?
             </label>
             <select
               id="int-type"
@@ -177,7 +179,7 @@ export function AddInteractionModal({
             htmlFor="int-comm-state"
             className="block text-xs font-medium text-stone-700 mb-1"
           >
-            Update Communication State
+            Latest reply status
           </label>
           <select
             id="int-comm-state"
@@ -192,6 +194,7 @@ export function AddInteractionModal({
           </select>
         </div>
 
+        <p className="text-xs text-stone-500">Need to follow up later? Save this update, then set a Next action on the application. Received a rejection? Cancel and choose Mark rejected.</p>
         <div className="flex items-center justify-end gap-2 pt-3 border-t border-stone-100">
           <button
             type="button"

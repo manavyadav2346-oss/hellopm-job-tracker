@@ -317,7 +317,9 @@ export function ApplicationForm({
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-stone-100">
+        <details open={isEditing || undefined} className="pt-2 border-t border-stone-100">
+          <summary className="cursor-pointer text-xs font-medium text-stone-600">Stage: {stage} · {communicationState} — change if needed</summary>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
           {/* Stage */}
           <div>
             <label
@@ -339,7 +341,7 @@ export function ApplicationForm({
               <option value="Offer">Offer</option>
               {isEditing && initialData?.stage === "Closed" && <option value="Closed">Closed</option>}
             </select>
-            <p className="text-xs text-stone-500 mt-2">Update this when a recruiter or portal confirms progress. No reply does not mean rejection. To record a rejection, open the saved application and choose Close → Rejected.</p>
+            <p className="text-xs text-stone-500 mt-2">Update this when a recruiter or portal confirms progress. No reply does not mean rejection. To record a rejection, open the saved application and choose Mark rejected.</p>
           </div>
 
           {/* Communication State */}
@@ -368,6 +370,7 @@ export function ApplicationForm({
             </span>
           </div>
         </div>
+        </details>
       </div>
 
       {/* PROGRESSIVE DISCLOSURE 1: Contact, Job URL, & Notes */}

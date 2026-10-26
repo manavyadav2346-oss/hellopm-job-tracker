@@ -20,7 +20,7 @@ import {
 interface ApplicationHeaderProps {
   application: Application;
   onOpenLogUpdate: () => void;
-  onOpenCloseApp: () => void;
+  onOpenCloseApp: (reason?: "Rejected") => void;
   onDeleteApp: () => void;
 }
 
@@ -54,9 +54,11 @@ export function ApplicationHeader({
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors focus:ring-2 focus:ring-indigo-500"
             >
               <PlusCircle className="w-4 h-4" />
-              <span>Log update</span>
+              <span>Add update</span>
             </button>
           )}
+
+          {!isClosed && <button type="button" onClick={() => onOpenCloseApp("Rejected")} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-rose-700 bg-rose-50 hover:bg-rose-100">Mark rejected</button>}
 
           <Link
             href={`/applications/${application.id}/edit`}
@@ -68,12 +70,12 @@ export function ApplicationHeader({
 
           {!isClosed && (
             <button
-              onClick={onOpenCloseApp}
+              onClick={() => onOpenCloseApp()}
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-stone-700 bg-stone-100 hover:bg-stone-200 transition-colors"
               title="Close application and remove tasks from attention view"
             >
               <Archive className="w-3.5 h-3.5 text-stone-500" />
-              <span>Close</span>
+              <span>Other outcome</span>
             </button>
           )}
 
@@ -86,6 +88,8 @@ export function ApplicationHeader({
           </button>
         </div>
       </div>
+
+      {!isClosed && <p className="text-xs text-stone-500">Add update records an email, call or interview that already happened. Use Next action below for something you still need to do. Only mark rejected when the company confirms it.</p>}
 
       {/* Badges & Status row */}
       <div className="flex flex-wrap items-center gap-2.5 pt-2 border-t border-stone-100">

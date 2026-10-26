@@ -4,7 +4,7 @@ import { getTodayLocalDateString, addDaysToLocalDateString } from "../src/lib/da
 import { previewStore } from "../src/lib/preview-store";
 import { DataService } from "../src/lib/data-service";
 
-const cloud = vi.hoisted(() => ({ client: { from: vi.fn() } }));
+const cloud = vi.hoisted(() => ({ client: { from: vi.fn(), auth: { getUser: vi.fn() } } }));
 vi.mock("../src/lib/supabase/client", () => ({
   getSupabaseClient: () => cloud.client,
   isSupabaseConfigured: () => true,
@@ -87,5 +87,58 @@ describe("Action editing and history", () => {
     expect(app.interactions![0].type).toBe("Note / Update");
     expect(app.interactions![0].summary).toContain("Planned application");
     expect(app.interactions![0].interaction_date).toBe(getTodayLocalDateString());
+  });
+});
+
+
+describe("Guest saves and account identity", () => {
+  const form = () => ({ company: "Guest test", role: "PM", application_date: getTodayLocalDateString(), stage: "Applied" as const, source: "LinkedIn" as const, communication_state: "No update received" as const });
+  const owner = "11111111-1111-4111-8111-111111111111";
+  beforeEach(() => { previewStore.reset(); cloud.client.from.mockReset(); cloud.client.auth.getUser.mockReset(); });
+
+  it("lets a guest create and reopen a preview record without any database calls", async () => {
+    vi.spyOn(DataService, "isPreviewMode").mockReturnValue(true);
+    const app = await DataService.createApplication(form());
+    expect((await DataService.getApplicationById(app.id))?.company).toBe("Guest test");
+    expect(cloud.client.from).not.toHaveBeenCalled();
+    expect(cloud.client.auth.getUser).not.toHaveBeenCalled();
+  });
+
+  it.each([undefined, "", "preview-user"])("blocks invalid account identity %s before writing", async id => {
+    vi.spyOn(DataService, "isPreviewMode").mockReturnValue(false);
+    await expect(DataService.createApplication(form(), id)).rejects.toThrow("sign in");
+    expect(cloud.client.from).not.toHaveBeenCalled();
+  });
+
+  it.each([null, { id: "22222222-2222-4222-8222-222222222222" }])("blocks an expired or switched session", async user => {
+    vi.spyOn(DataService, "isPreviewMode").mockReturnValue(false);
+    cloud.client.auth.getUser.mockResolvedValue({ data: { user }, error: null });
+    await expect(DataService.createApplication(form(), owner)).rejects.toThrow("session has changed");
+    expect(cloud.client.from).not.toHaveBeenCalled();
+  });
+
+  it("saves the verified account owner and keeps preview records out of the insert", async () => {
+    vi.spyOn(DataService, "isPreviewMode").mockReturnValue(false);
+    cloud.client.auth.getUser.mockResolvedValue({ data: { user: { id: owner } }, error: null });
+    const inserted = { ...form(), id: "app-cloud", user_id: owner };
+    const query: any = { insert: vi.fn(), select: vi.fn(), single: vi.fn().mockResolvedValue({ data: inserted, error: null }) };
+    query.insert.mockReturnValue(query); query.select.mockReturnValue(query);
+    cloud.client.from.mockReturnValue(query);
+    expect((await DataService.createApplication(form(), owner)).id).toBe("app-cloud");
+    expect(query.insert.mock.calls[0][0].user_id).toBe(owner);
+    expect(previewStore.getApplicationById("app-cloud")).toBeNull();
+  });
+
+  it("confirmed rejection cancels attention tasks but preserves the application and history", async () => {
+    vi.spyOn(DataService, "isPreviewMode").mockReturnValue(true);
+    const app = await DataService.createApplication({ ...form(), include_next_action: true, next_action_title: "Check response", next_action_due_date: getTodayLocalDateString(), next_action_type: "check_portal" });
+    await DataService.closeApplication(app.id, "Rejected", "Company emailed today");
+    const saved = await DataService.getApplicationById(app.id);
+    expect(saved?.stage).toBe("Closed");
+    expect(saved?.closed_reason).toBe("Rejected");
+    expect(saved?.active_action).toBeNull();
+    expect(saved?.interactions?.length).toBeGreaterThan(1);
+    const attention = await DataService.getDueAndUpcomingActions();
+    expect([...attention.dueAndOverdue, ...attention.upcoming].some(a => a.application_id === app.id)).toBe(false);
   });
 });
